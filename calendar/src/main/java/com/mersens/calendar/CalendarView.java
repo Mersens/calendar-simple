@@ -1,12 +1,14 @@
 package com.mersens.calendar;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.content.res.TypedArray;
 import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.GridView;
@@ -25,12 +27,21 @@ import java.util.Locale;
  */
 
 public class CalendarView extends FrameLayout {
+    private static final String TAG="CalendarView";
+    private static final int DEFAULT_SELECT_DATE_COLOR=0XFF259B24;
+    private static final int DEFAULT_CURRENT_DATE_COLOR=0XFFE51C23;
+    private static final int DEFAULT_UNSELECT_DATE_COLOR=0XFF3E3E39;
+    private int select_date_color;
+    private int unselect_date_color;
+    private int current_date_color;
     private ImageView btn_left;
     private ImageView btn_right;
     private GridView grid_days;
     private TextView tv_title;
     private CalendarAdapter adapter;
     private Calendar curDate;
+    private OnDateSelectListener listener;
+    private SimpleDateFormat sdf;
 
     public CalendarView(Context context) {
         this(context, null);
@@ -42,17 +53,43 @@ public class CalendarView extends FrameLayout {
 
     public CalendarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(attrs);
     }
 
-    private void init() {
+    private void init(AttributeSet attrs) {
+        TypedArray a=getContext().obtainStyledAttributes(attrs,R.styleable.CalendarView);
+        try{
+            if(a.hasValue(R.styleable.CalendarView_select_date_color)){
+                select_date_color=a.getColor(R.styleable.CalendarView_select_date_color,
+                        DEFAULT_SELECT_DATE_COLOR);
+            }else {
+                select_date_color=DEFAULT_SELECT_DATE_COLOR;
+            }
+            if(a.hasValue(R.styleable.CalendarView_unselect_date_color)){
+                unselect_date_color=a.getColor(R.styleable.CalendarView_unselect_date_color,
+                        DEFAULT_UNSELECT_DATE_COLOR);
+            }else{
+                unselect_date_color= DEFAULT_UNSELECT_DATE_COLOR;
+            }
+            if(a.hasValue(R.styleable.CalendarView_current_date_color)){
+                current_date_color=a.getColor(R.styleable.CalendarView_current_date_color,
+                        DEFAULT_CURRENT_DATE_COLOR);
+            }else{
+                current_date_color=DEFAULT_CURRENT_DATE_COLOR;
+            }
+        }catch (Exception e){
+            Log.e(TAG, e.toString());
+        }finally {
+            a.recycle();
+        }
         initViews();
         initEvent();
-        initDatas(true);
+        initDatas();
     }
 
     private void initViews() {
         curDate = Calendar.getInstance();
+
         LayoutInflater inflater = LayoutInflater.from(getContext());
         inflater.inflate(R.layout.calendar_layout, this);
         btn_left = (ImageView) findViewById(R.id.btn_left);
@@ -67,7 +104,7 @@ public class CalendarView extends FrameLayout {
             @Override
             public void onClick(View v) {
                 curDate.add(Calendar.MONTH, -1);
-                initDatas(false);
+                initDatas();
             }
         });
 
@@ -75,14 +112,41 @@ public class CalendarView extends FrameLayout {
             @Override
             public void onClick(View v) {
                 curDate.add(Calendar.MONTH, 1);
-                initDatas(false);
+                initDatas();
             }
         });
-
+        grid_days.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CalendarTextView ct=(CalendarTextView) view;
+                String date=ct.getText().toString();
+                if(date!=null && !"".equals(date)){
+                    for(CalendarTextView cv:adapter.getDateLists()){
+                        if( cv.isSelect()){
+                            if(cv.isToday()){
+                                cv.setTextColor(current_date_color);
+                                cv.setTodayPaintColor(current_date_color);
+                            }else{
+                                cv.setTextColor(unselect_date_color);
+                            }
+                            cv.setSelect(false);
+                        }
+                    }
+                    if(!ct.isToday()){
+                        ct.setSelectPaintColor(select_date_color);
+                        ct.setTextColor(select_date_color);
+                    }
+                    ct.setSelect(true);
+                    if(listener==null){
+                        return;
+                    }
+                    listener.onSelect(sdf.format(curDate.getTime())+"-"+ct.getText().toString());
+                }
+            }
+        });
     }
-
-    private void initDatas(boolean inMonth) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM", Locale.ENGLISH);
+    private void initDatas() {
+        sdf = new SimpleDateFormat("yyyy-M", Locale.ENGLISH);
         tv_title.setText(sdf.format(curDate.getTime()));
         ArrayList<Date> cells = new ArrayList<Date>();
         Calendar calendar = (Calendar) curDate.clone();
@@ -101,12 +165,17 @@ public class CalendarView extends FrameLayout {
 
     private class CalendarAdapter extends ArrayAdapter<Date> {
         private LayoutInflater mInflater;
+        private ArrayList<CalendarTextView> dateLists;
 
 
         public CalendarAdapter(Context context, ArrayList<Date> list) {
             super(context, R.layout.day_layout, list);
             mInflater = LayoutInflater.from(context);
+            dateLists=new ArrayList<CalendarTextView>();
+        }
 
+        public ArrayList<CalendarTextView> getDateLists(){
+            return this.dateLists;
         }
 
         @NonNull
@@ -126,19 +195,34 @@ public class CalendarView extends FrameLayout {
             }
             if (isTheSameMonth) {
                 //当月的日期
-                tv_day.setTextColor(Color.parseColor("#3e3e39"));
+                tv_day.setTextColor(unselect_date_color);
+                dateLists.add(tv_day);
             } else {
                 //不是当月的日期
-                tv_day.setTextColor(Color.parseColor("#bdbdbd"));
+                tv_day.setText("");
             }
             //当前日期为当天
             Date d = new Date();
             if (d.getDate() == date.getDate() && d.getMonth() == date.getMonth() &&
                     d.getYear() == date.getYear()) {
-                    tv_day.setTextColor(Color.parseColor("#e51c23"));
-                    tv_day.setSelect(true);
+                String prevDate = tv_day.getText().toString();
+                if (prevDate != null && !"".equals(prevDate)) {
+                    tv_day.setTodayPaintColor(current_date_color);
+                    tv_day.setTextColor(current_date_color);
+                    tv_day.setToday(true);
                 }
+
+            }
             return convertView;
         }
     }
+
+    public void setOnDateSelectListener(OnDateSelectListener listener){
+        this.listener=listener;
+    }
+    public interface OnDateSelectListener{
+        void onSelect(String date);
+    }
+
+
 }

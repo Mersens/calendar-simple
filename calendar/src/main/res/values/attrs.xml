@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CalendarView">
+        <attr name="select_date_color" format="color"/>
+        <attr name="current_date_color" format="color"/>
+        <attr name="unselect_date_color" format="color"/>
+    </declare-styleable>
+</resources>
