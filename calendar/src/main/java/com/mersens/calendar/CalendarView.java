@@ -32,6 +32,7 @@ public class CalendarView extends FrameLayout {
     private static final int DEFAULT_SELECT_DATE_COLOR=0XFF259B24;
     private static final int DEFAULT_CURRENT_DATE_COLOR=0XFFE51C23;
     private static final int DEFAULT_UNSELECT_DATE_COLOR=0XFF3E3E39;
+    private static final int DEFAULT_TEXT_COLOR=0XFFFFFFFF;
     private static final int DEFAULT_WEEK_COLOR=DEFAULT_UNSELECT_DATE_COLOR;
     private static final int DEFAULT_TITLE_COLOR=DEFAULT_UNSELECT_DATE_COLOR;
 
@@ -175,8 +176,10 @@ public class CalendarView extends FrameLayout {
         });
     }
     private void initDatas() {
+
         sdf = new SimpleDateFormat("yyyy-M", Locale.ENGLISH);
         tv_title.setText(sdf.format(curDate.getTime()));
+
         ArrayList<Date> cells = new ArrayList<Date>();
         Calendar calendar = (Calendar) curDate.clone();
         calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -224,7 +227,8 @@ public class CalendarView extends FrameLayout {
             }
             if (isTheSameMonth) {
                 //当月的日期
-                tv_day.setTextColor(unselect_date_color);
+              // tv_day.setTextColor(unselect_date_color);
+                tv_day.setUnSelectPaintColor(unselect_date_color);
                 dateLists.add(tv_day);
             } else {
                 //不是当月的日期
@@ -237,10 +241,9 @@ public class CalendarView extends FrameLayout {
                 String prevDate = tv_day.getText().toString();
                 if (prevDate != null && !"".equals(prevDate)) {
                     tv_day.setTodayPaintColor(current_date_color);
-                    tv_day.setTextColor(current_date_color);
+                    //tv_day.setTextColor(current_date_color);
                     tv_day.setToday(true);
                 }
-
             }
             return convertView;
         }
@@ -249,6 +252,7 @@ public class CalendarView extends FrameLayout {
     public void setOnDateSelectListener(OnDateSelectListener listener){
         this.listener=listener;
     }
+
     public interface OnDateSelectListener{
         void onSelect(String date);
     }
