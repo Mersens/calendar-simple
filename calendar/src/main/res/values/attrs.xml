@@ -4,5 +4,7 @@
         <attr name="select_date_color" format="color"/>
         <attr name="current_date_color" format="color"/>
         <attr name="unselect_date_color" format="color"/>
+        <attr name="week_color" format="color"/>
+        <attr name="title_color" format="color"/>
     </declare-styleable>
 </resources>

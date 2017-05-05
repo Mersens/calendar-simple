@@ -11,8 +11,10 @@
        android:id="@+id/calendarView"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
-        app:current_date_color="#9c27b0"
+        app:current_date_color="#e51c23"
         app:select_date_color="#ff9800"
         app:unselect_date_color="#009688"
+        app:title_color="#673ab7"
+        app:week_color="#5677fc"
         />
 </LinearLayout>

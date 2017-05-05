@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -22,7 +23,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Created by Mersens on 2017/5/3 13:58
+ * Created by Mersens on 2017/5/2
  * Email:626168564@qq.com
  */
 
@@ -31,13 +32,22 @@ public class CalendarView extends FrameLayout {
     private static final int DEFAULT_SELECT_DATE_COLOR=0XFF259B24;
     private static final int DEFAULT_CURRENT_DATE_COLOR=0XFFE51C23;
     private static final int DEFAULT_UNSELECT_DATE_COLOR=0XFF3E3E39;
+    private static final int DEFAULT_WEEK_COLOR=DEFAULT_UNSELECT_DATE_COLOR;
+    private static final int DEFAULT_TITLE_COLOR=DEFAULT_UNSELECT_DATE_COLOR;
+
     private int select_date_color;
     private int unselect_date_color;
     private int current_date_color;
+    private int week_color;
+    private int title_color;
+
     private ImageView btn_left;
     private ImageView btn_right;
     private GridView grid_days;
     private TextView tv_title;
+    private LinearLayout layout_weeks;
+
+
     private CalendarAdapter adapter;
     private Calendar curDate;
     private OnDateSelectListener listener;
@@ -77,6 +87,16 @@ public class CalendarView extends FrameLayout {
             }else{
                 current_date_color=DEFAULT_CURRENT_DATE_COLOR;
             }
+            if(a.hasValue(R.styleable.CalendarView_week_color)){
+                week_color=a.getColor(R.styleable.CalendarView_week_color,DEFAULT_WEEK_COLOR);
+            }else {
+                week_color=DEFAULT_WEEK_COLOR;
+            }
+            if(a.hasValue(R.styleable.CalendarView_title_color)){
+                title_color=a.getColor(R.styleable.CalendarView_title_color,DEFAULT_TITLE_COLOR);
+            }else{
+                title_color=DEFAULT_TITLE_COLOR;
+            }
         }catch (Exception e){
             Log.e(TAG, e.toString());
         }finally {
@@ -89,13 +109,22 @@ public class CalendarView extends FrameLayout {
 
     private void initViews() {
         curDate = Calendar.getInstance();
-
         LayoutInflater inflater = LayoutInflater.from(getContext());
         inflater.inflate(R.layout.calendar_layout, this);
         btn_left = (ImageView) findViewById(R.id.btn_left);
         btn_right = (ImageView) findViewById(R.id.btn_right);
         grid_days = (GridView) findViewById(R.id.grid_days);
         tv_title = (TextView) findViewById(R.id.tv_title);
+        tv_title.setTextColor(title_color);
+
+        layout_weeks=(LinearLayout)findViewById(R.id.layout_weeks);
+        for(int i=0;i<layout_weeks.getChildCount();i++){
+            View view=layout_weeks.getChildAt(i);
+            if(view instanceof TextView){
+                TextView tv_week=(TextView)view;
+                tv_week.setTextColor(week_color);
+            }
+        }
     }
 
     private void initEvent() {

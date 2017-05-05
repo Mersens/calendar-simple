@@ -8,7 +8,7 @@ import android.util.TypedValue;
 import android.widget.TextView;
 
 /**
- * Created by Mersens on 2017/5/3 16:30
+ * Created by Mersens on 2017/5/3
  * Email:626168564@qq.com
  */
 
